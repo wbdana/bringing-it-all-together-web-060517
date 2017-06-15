@@ -40,10 +40,7 @@ class Dog
 
   def self.create(attributes_hash)
     dog = self.new(attributes_hash)
-    dog.name = attributes_hash[:name]
-    dog.breed = attributes_hash[:breed]
     dog.save
-    dog
   end
 
   def self.find_by_id(id)
@@ -52,31 +49,25 @@ class Dog
     FROM dogs
     WHERE id = ?
     SQL
-    # binding.pry
     dog_data = DB[:conn].execute(sql, id)[0]
-    dog_hash = {id: dog_data[0], name: dog_data[1], breed: dog_data[2]}
-    dog = Dog.new(dog_hash)
+    dog = Dog.new_from_db(dog_data)
   end
 
   def self.find_or_create_by(attributes_hash)
-    dog_name = attributes_hash[:name]
-    dog_breed = attributes_hash[:breed]
     dog = DB[:conn].execute("SELECT *  FROM dogs WHERE name = ? AND breed = ?;", attributes_hash[:name], attributes_hash[:breed])
     if !dog.empty?
       dog_data = dog[0]
-      dog_hash = {id: dog_data[0], name: dog_data[1], breed: dog_data[2]}
-      # binding.pry
-      dog = Dog.new(dog_hash)
+      dog = self.new_from_db(dog_data)
     else
-      dog = Dog.create(attributes_hash)
+      dog = self.create(attributes_hash)
     end
     dog
   end
 
   def self.new_from_db(row)
     # binding.pry
-    row_hash = {id: row[0], name: row[1], breed: row[2]}
-    new_dog = Dog.new(row_hash)
+    new_dog = Dog.new({id: row[0], name: row[1], breed: row[2]})
+    # new_dog = Dog.new(row_hash)
     new_dog
   end
 
@@ -86,9 +77,8 @@ class Dog
     FROM dogs
     WHERE name = ?
     SQL
-    dog_arr = DB[:conn].execute(sql, name)[0]
-    dog_hash = {id: dog_arr[0], name: dog_arr[1], breed: dog_arr[2]}
-    dog = Dog.new(dog_hash)
+    dog_data = DB[:conn].execute(sql, name)[0]
+    dog = Dog.new_from_db(dog_data)
     dog
   end
 
